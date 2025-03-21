@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Order Form</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; margin-right: 20px;  }
+        .container {
+            max-width:900px;  width: 100%; margin: auto; background: white; 
+            border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 { text-align: center; color: #333; }
+        label { font-weight: bold; display: block; margin-top: 10px; margin-left: 10px; margin-right: 30px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;  }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white;   }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background: #007bff; color: white; }
+        .total { text-align: right; margin-top: 20px; margin-right: 20px; font-size: 18px; font-weight: bold; }
+        .download-btn { text-align: center; margin-top: 20px; }
+        .download-btn button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .download-btn button:hover { background: #218838; }
+        .search-results { border: 1px solid #ccc; max-height: 150px; overflow-y: auto; position: absolute; background: white; width: 250px; z-index: 1000; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
+        .search-results div { padding: 10px; cursor: pointer; }
+        .search-results div:hover { background: #f0f0f0; }
+        .qty-input { width: 50px; text-align: center; }
+        .logo { text-align: center; margin-bottom: 20px; }
+        .out-of-stock { color: red; font-weight: bold; }
+        .note { text-align: center; font-size: 14px; margin-top: 20px; color: #555; margin-right: 20px;  }
+
+        /* Styles for print */
+        @media print {
+            .download-btn {
+                display: none;
+            }
+            .note {
+                display: block;
+            }
+            .logo img {
+                max-width: 150px;
+            }
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+                padding-bottom: 30px; /* Ensure enough space at the bottom */
+            }
+            body {
+                background-color: white;
+                padding: 0;
+                margin-right: 20px; 
+            }
+            h2, label, input {
+                color: black;
+            }
+            table th {
+                background-color: #007bff;
+                color: white;
+            }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            input, label {
+                font-size: 14px;
+            }
+            table th, table td {
+                padding: 8px;
+            }
+            .qty-input {
+                width: 40px;
+            }
+            .download-btn button {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 18px;
+            }
+            label {
+                font-size: 12px;
+            }
+            input {
+                font-size: 14px;
+            }
+            table th, table td {
+                padding: 6px;
+            }
+            .download-btn button {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+            .total {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="contentToDownload">
+        <div class="logo">
+            <img id="companyLogo" src="https://scontent.fmnl4-1.fna.fbcdn.net/v/t39.30808-6/485886832_1188460536622453_22720650337568562_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=bFlhHh8mxWcQ7kNvgFYgKwv&_nc_oc=AdmumXnPxK2IIx9vvEEAJnhYwtiM1wRy8whJzkj8h4RZxuoydrfm10E3GY_v6cOPjKc&_nc_zt=23&_nc_ht=scontent.fmnl4-1.fna&_nc_gid=M4lPiPnP76wjSr_oaQAPPA&oh=00_AYGeZBFXcyc1oYTiEgeW9NW_gl8vDyatfDTAW4as8eKbLw&oe=67E2B470" alt="Company Logo" style="max-width: 150px;">
+        </div>
+        <h2>Solar Product Order Form</h2>
+        <label>Customer Name: <input type="text" id="customerName"></label>
+        <label>Contact: <input type="text" id="customerContact"></label>
+        <label>Delivery Address: <input type="text" id="customerAddress"></label>
+        <label>Search Product: <input type="text" id="productSearch" oninput="searchProducts()"></label>
+        <div class="search-results" id="searchResults"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SRP</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="productTable">
+            </tbody>
+        </table>
+        <div class="total">
+            <strong>Total: </strong> <span id="totalPrice">₱0.00</span>
+        </div>
+        <div class="note">
+            * Note: Prices may vary depending on the item and quantity. Discounts may still apply.<br> <br>
+            Please click "Download PDF" and save it, then send it to our page so we can check stock availability and adjust the price accordingly.
+        </div>
+        <div class="download-btn">
+            <button onclick="downloadPDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <!-- Include the html2pdf.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+    <script>
+        let products = [];
+
+        function fetchProducts() {
+            fetch('https://script.google.com/macros/s/AKfycbxbSF8696carwRVXY8mf1OLGopjM_UazaWK5BqGHWz7XxlkMmP6-xabhTik5JmtIddvTg/exec')
+                .then(response => response.json())
+                .then(data => {
+                    products = data;
+                })
+                .catch(error => console.error('Error fetching products:', error));
+        }
+
+        function searchProducts() {
+            let query = document.getElementById("productSearch").value.toLowerCase();
+            let resultsContainer = document.getElementById("searchResults");
+            resultsContainer.innerHTML = "";
+            if (query.length > 0) {
+                let filteredProducts = products.filter(p => p.name.toLowerCase().includes(query));
+                filteredProducts.forEach(product => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `${product.name} - ₱${formatCurrency(product.srp)} ${product.stockStatus === 'Out of Stock' ? '<span class="out-of-stock">(Out of Stock)</span>' : ''}`;
+                    div.onclick = () => { 
+                        addProductToTable(product);
+                        document.getElementById("productSearch").value = "";
+                        resultsContainer.innerHTML = "";
+                    };
+                    resultsContainer.appendChild(div);
+                });
+            }
+        }
+
+        function addProductToTable(product) {
+            let table = document.getElementById("productTable");
+            let row = table.insertRow();
+            row.innerHTML = ` 
+                <td>${product.name} ${product.stockStatus === 'Out of Stock' ? '<span class="out-of-stock">(Out of Stock)</span>' : ''}</td>
+                <td>₱${formatCurrency(product.srp)}</td>
+                <td><input type='number' min='1' value='1' class='qty-input' onchange='calculateTotal()'></td>
+                <td class='subtotal'>₱${formatCurrency(product.srp)}</td>
+                <td><button onclick='deleteRow(this)' style='background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;'>Delete</button></td>
+            `;
+            calculateTotal();
+        }
+
+        function deleteRow(button) {
+            let row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let table = document.getElementById("productTable");
+            let total = 0;
+            for (let row of table.rows) {
+                let qty = row.cells[2].querySelector("input").value;
+                let srp = parseFloat(row.cells[1].textContent.replace('₱', '').replace(/,/g, ''));
+                let subtotal = qty * srp;
+                row.cells[3].textContent = '₱' + formatCurrency(subtotal);
+                total += subtotal;
+            }
+            document.getElementById("totalPrice").textContent = '₱' + formatCurrency(total);
+        }
+
+        function formatCurrency(amount) {
+            return amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function downloadPDF() {
+            let element = document.getElementById('contentToDownload');
+            html2pdf(element, {
+                filename: 'order_form.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: {
+                    scale: 4,
+                    useCORS: true,  // Ensure cross-origin resources (like images) are loaded
+                    logging: true  // Enable logging for troubleshooting
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait', 
+                    margin: 15
+                }
+            });
+        }
+
+        window.onload = fetchProducts;
+    </script>
+</body>
+</html>
